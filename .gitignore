@@ -1,0 +1,17 @@
+# secrets
+.env
+
+# rebuilt by the notebook
+chroma_db/
+.cache/
+data/corpus/
+__pycache__/
+.ipynb_checkpoints/
+.DS_Store
+
+# the professor's checklist (not part of the project)
+*checklist*.pdf
+
+# other files that don't belong in the repo
+.Rhistory
+*.html

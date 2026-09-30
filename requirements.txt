@@ -1,0 +1,9 @@
+openai>=1.58,<2
+langchain==0.3.14
+chromadb==0.5.23
+numpy<2
+python-dotenv==1.0.1
+pypdf==5.1.0
+tiktoken
+pandas
+matplotlib

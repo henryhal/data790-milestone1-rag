@@ -1,0 +1,223 @@
+[
+  {
+    "id": "q01",
+    "source": "owasp_top10_llm_2025.pdf",
+    "type": "conceptual",
+    "answerable": true,
+    "question": "Why did OWASP add System Prompt Leakage to the 2025 Top 10?",
+    "answer": "Because of real-world exploits: many applications assumed prompts were securely isolated, but incidents showed developers cannot assume information in prompts stays secret.",
+    "evidence": [
+      "developers cannot safely assume that information in these prompts remains secret"
+    ]
+  },
+  {
+    "id": "q02",
+    "source": "owasp_top10_llm_2025.pdf",
+    "type": "multi",
+    "answerable": true,
+    "question": "What is the difference between direct and indirect prompt injection?",
+    "answer": "Direct injection is when the user's own prompt alters the model's behavior; indirect injection is when the model takes in external content (websites, files) that contains instructions that alter its behavior.",
+    "evidence": [
+      "Direct prompt injections occur when a user's prompt input directly alters",
+      "Indirect prompt injections occur when an LLM accepts input from external sources"
+    ]
+  },
+  {
+    "id": "q03",
+    "source": "owasp_top10_llm_2025.pdf",
+    "type": "factual",
+    "answerable": true,
+    "question": "What are the three root causes of Excessive Agency?",
+    "answer": "Excessive functionality, excessive permissions, and excessive autonomy.",
+    "evidence": [
+      "excessive functionality; excessive permissions; excessive autonomy"
+    ]
+  },
+  {
+    "id": "q04",
+    "source": "owasp_top10_llm_2025.pdf",
+    "type": "factual",
+    "answerable": true,
+    "question": "What is a Denial of Wallet attack?",
+    "answer": "An attacker initiates a high volume of operations to exploit the cost-per-use model of cloud AI services, causing unsustainable costs for the provider.",
+    "evidence": [
+      "exploit the cost-per-use model of cloud-based AI services"
+    ]
+  },
+  {
+    "id": "q05",
+    "source": "owasp_top10_llm_2025.pdf",
+    "type": "factual",
+    "answerable": true,
+    "question": "Which CVE is cited in OWASP's code injection prompt injection scenario?",
+    "answer": "CVE-2024-5184, a vulnerability in an LLM-powered email assistant.",
+    "evidence": [
+      "CVE-2024-5184"
+    ]
+  },
+  {
+    "id": "q06",
+    "source": "nist_ai_rmf_1.0.pdf",
+    "type": "factual",
+    "answerable": true,
+    "question": "What are the four functions of the AI RMF Core?",
+    "answer": "GOVERN, MAP, MEASURE, and MANAGE.",
+    "evidence": [
+      "GOVERN, MAP, MEASURE, and MANAGE"
+    ]
+  },
+  {
+    "id": "q07",
+    "source": "nist_ai_rmf_1.0.pdf",
+    "type": "factual",
+    "answerable": true,
+    "question": "What is residual risk?",
+    "answer": "Risk remaining after risk treatment; it directly impacts end users or affected communities and should be documented.",
+    "evidence": [
+      "risk remaining after risk treatment"
+    ]
+  },
+  {
+    "id": "q08",
+    "source": "nist_ai_rmf_1.0.pdf",
+    "type": "paraphrase",
+    "answerable": true,
+    "question": "Why is it hard to compare an AI system's performance with how people would do the same job?",
+    "answer": "The 'human baseline' challenge: risk management of systems that augment or replace humans needs baseline metrics for comparison, which is hard to systematize because AI systems do tasks differently than humans.",
+    "evidence": [
+      "requires some form of baseline metrics for comparison"
+    ]
+  },
+  {
+    "id": "q09",
+    "source": "nist_genai_profile_600-1.pdf",
+    "type": "factual",
+    "answerable": true,
+    "question": "How does NIST AI 600-1 define confabulation?",
+    "answer": "The production of confidently stated but erroneous or false content (colloquially hallucinations or fabrications) by which users may be misled.",
+    "evidence": [
+      "The production of confidently stated but erroneous or false content"
+    ]
+  },
+  {
+    "id": "q10",
+    "source": "nist_genai_profile_600-1.pdf",
+    "type": "factual",
+    "answerable": true,
+    "question": "According to the NIST profile, how much carbon can training a single transformer LLM emit?",
+    "answer": "As much carbon as 300 round-trip flights between San Francisco and New York.",
+    "evidence": [
+      "300 roundtrip flights between San Francisco and New York"
+    ]
+  },
+  {
+    "id": "q11",
+    "source": "nist_genai_profile_600-1.pdf",
+    "type": "multi",
+    "answerable": true,
+    "question": "What types of AI red-teaming does the NIST Generative AI Profile describe?",
+    "answer": "General public, expert, combination (expert plus general public), and human/AI red-teaming.",
+    "evidence": [
+      "General Public: Performed by general users",
+      "Expert: Performed by specialists",
+      "Human / AI: Performed by GAI in combination"
+    ]
+  },
+  {
+    "id": "q12",
+    "source": "lewis2020_rag.pdf",
+    "type": "multi",
+    "answerable": true,
+    "question": "What is the difference between RAG-Sequence and RAG-Token?",
+    "answer": "RAG-Sequence uses the same retrieved document to generate the whole output sequence; RAG-Token can use a different document for each generated token.",
+    "evidence": [
+      "RAG-Sequence model uses the same retrieved document to generate the complete sequence",
+      "RAG-Token model we can draw a different latent document for each target token"
+    ]
+  },
+  {
+    "id": "q13",
+    "source": "lewis2020_rag.pdf",
+    "type": "factual",
+    "answerable": true,
+    "question": "Which generator model did the RAG paper use and how big was it?",
+    "answer": "BART-large, a pre-trained seq2seq transformer with 400M parameters.",
+    "evidence": [
+      "with 400M parameters"
+    ]
+  },
+  {
+    "id": "q14",
+    "source": "asai2023_self_rag.pdf",
+    "type": "factual",
+    "answerable": true,
+    "question": "What are the four types of reflection tokens in Self-RAG?",
+    "answer": "Retrieve, ISREL (relevance), ISSUP (support), and ISUSE (usefulness).",
+    "evidence": [
+      "Four types of reflection tokens used in"
+    ]
+  },
+  {
+    "id": "q15",
+    "source": "asai2023_self_rag.pdf",
+    "type": "factual",
+    "answerable": true,
+    "question": "What retrieval threshold does Self-RAG use for most tasks?",
+    "answer": "0.2 (and 0 for ALCE because of citation requirements).",
+    "evidence": [
+      "retrieval threshold to 0.2 for most tasks"
+    ]
+  },
+  {
+    "id": "q16",
+    "source": null,
+    "type": "cross_doc",
+    "answerable": true,
+    "question": "How do OWASP and the NIST Generative AI Profile each describe indirect prompt injection?",
+    "answer": "OWASP: the LLM accepts input from external sources like websites or files that contain content altering its behavior. NIST: adversaries remotely exploit LLM-integrated apps by injecting prompts into data likely to be retrieved.",
+    "evidence": [
+      "Indirect prompt injections occur when an LLM accepts input from external sources",
+      "injecting prompts into data likely to be retrieved"
+    ]
+  },
+  {
+    "id": "q17",
+    "source": null,
+    "type": "unanswerable",
+    "answerable": false,
+    "question": "What fines does the EU AI Act impose for violations?",
+    "answer": "Not in the documents - the system should decline.",
+    "evidence": [],
+    "note": "EU AI Act fines"
+  },
+  {
+    "id": "q18",
+    "source": null,
+    "type": "unanswerable",
+    "answerable": false,
+    "question": "What is LLM11 in the OWASP Top 10 for LLM Applications 2025?",
+    "answer": "Not in the documents - the system should decline.",
+    "evidence": [],
+    "note": "there are only 10 entries"
+  },
+  {
+    "id": "q19",
+    "source": null,
+    "type": "unanswerable",
+    "answerable": false,
+    "question": "When will NIST release version 2.0 of the AI RMF?",
+    "answer": "Not in the documents - the system should decline.",
+    "evidence": [],
+    "note": "future release date"
+  },
+  {
+    "id": "q20",
+    "source": null,
+    "type": "unanswerable",
+    "answerable": false,
+    "question": "Which vector database did the Self-RAG authors use to store their index?",
+    "answer": "Not in the documents - the system should decline.",
+    "evidence": [],
+    "note": "not stated"
+  }
+]
