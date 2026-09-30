@@ -8,25 +8,6 @@ A RAG system that answers questions about AI risk management and LLM security, u
 
 Everything is in one notebook: `Milestone1_Production_RAG.ipynb`.
 
-## Architecture
-
-```mermaid
-flowchart LR
-    A[5 PDFs] --> B[Clean + chunk<br/>sentence_800] --> C[Embed<br/>text-embedding-3-small] --> D[(Chroma)]
-    Q[Question] --> V{Input check}
-    V --> R[Retrieve top 5]
-    D --> R
-    R --> S[Drop untrusted chunks<br/>with injected instructions]
-    S --> G{Grade each chunk<br/>ISREL}
-    G -- none relevant --> N[I don't know]
-    G --> GEN[Generate answer<br/>gpt-4.1-mini]
-    GEN --> H{Answer supported?<br/>ISSUP}
-    H -- no --> N
-    H -- yes --> O[Answer + sources]
-```
-
-The baseline pipeline is just: retrieve top 5 → generate → answer + sources.
-
 ## Results
 
 | | Baseline RAG | Self-RAG |
@@ -71,3 +52,5 @@ Retrieval (sentence_800 chunks, 16 answerable questions): hit@5 = 0.69, precisio
 - `results/llm_cache.json` - every saved LLM response (answer, tokens, latency), so reruns give the same numbers
 - `results/generation_eval.csv` - every answer and its judge scores from Section 8
 - `requirements.txt`, `.env.example`
+
+The test questions were written from the documents with AI assistance, and I used a script to check that every evidence phrase really appears in the documents.
