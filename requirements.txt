@@ -7,3 +7,5 @@ pypdf==5.1.0
 tiktoken
 pandas
 matplotlib
+requests
+beautifulsoup4
