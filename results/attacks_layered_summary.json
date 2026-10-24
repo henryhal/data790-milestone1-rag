@@ -1,0 +1,18 @@
+{
+  "label": "layered",
+  "attacks": 20,
+  "succeeded": 2,
+  "success rate": 0.1,
+  "succeeded by kind": {
+    "context manipulation": "0/4",
+    "direct": "0/5",
+    "indirect": "2/7",
+    "role override": "0/4"
+  },
+  "caught by layer": {
+    "classifier": 10,
+    "gateway": 1,
+    "pattern": 3,
+    "sanitize": 1
+  }
+}

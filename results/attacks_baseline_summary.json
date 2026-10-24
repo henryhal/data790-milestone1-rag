@@ -1,0 +1,13 @@
+{
+  "label": "baseline",
+  "attacks": 20,
+  "succeeded": 8,
+  "success rate": 0.4,
+  "succeeded by kind": {
+    "context manipulation": "3/4",
+    "direct": "1/5",
+    "indirect": "3/7",
+    "role override": "1/4"
+  },
+  "caught by layer": {}
+}

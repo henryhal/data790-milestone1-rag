@@ -1,0 +1,27 @@
+{
+  "label": "layered",
+  "guard": "layered",
+  "questions": 44,
+  "answerable": 39,
+  "unanswerable": 5,
+  "hit@1": 0.717948717948718,
+  "hit@3": 0.7948717948717948,
+  "hit@5": 0.8205128205128205,
+  "accuracy (score 4-5)": 0.7692307692307693,
+  "mean correctness (1-5)": 4.282051282051282,
+  "answerable declined": 2,
+  "unanswerable correctly declined": "5/5",
+  "wrongly blocked (false positives)": 3,
+  "wrongly blocked rate": 0.07692307692307693,
+  "latency p50 (ms)": 2736.7,
+  "latency p95 (ms)": 4514.530000000002,
+  "cost per query ($)": 0.0006445904545454546,
+  "judge cost total ($)": 0.0033631999999999993,
+  "by question type (hit@5)": {
+    "A": 0.8333333333333334,
+    "B": 1.0,
+    "C": 1.0,
+    "D": 1.0,
+    "E": 0.5
+  }
+}
