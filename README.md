@@ -1,56 +1,64 @@
-# Milestone 1: Production RAG System
+# Milestone 2: Security-Hardened Destiny Lore Guide
 
 DATA 790 - Henry Halvorsen
 
-A RAG system that answers questions about AI risk management and LLM security, using only five public documents, and cites the document, page, and chunk for every answer. It compares a basic RAG pipeline against a simplified **Self-RAG** pipeline (grades each retrieved chunk, checks the answer is supported, and says "I don't know" instead of guessing).
+A RAG system that answers players' questions about the story of Destiny and Destiny 2, citing the lore entries it used. It answers from 3,411 lore documents (Bungie's official Destiny 2 lore and Destiny 1 Grimoire, plus Destiny Wiki pages), and it protects its system prompt, its persona, the player data in its corpus, and its API keys.
 
-**Documents:** NIST AI RMF 1.0, NIST AI 600-1 (Generative AI Profile), OWASP Top 10 for LLM Applications 2025, Lewis et al. 2020 (RAG), and Asai et al. 2023 (Self-RAG). 204 pages total.
-
-Everything is in one notebook: `Milestone1_Production_RAG.ipynb`.
+Milestone 1 (the AI-security RAG system) is preserved under the `milestone-1` tag. This milestone keeps the same pipeline, with a new, larger corpus, an attack suite, and layered defenses.
 
 ## Results
 
-| | Baseline RAG | Self-RAG |
+| Gold set (44 questions) | Undefended | With defenses |
 |---|---|---|
-| Accuracy (judge score 4-5, 16 answerable questions) | 75% | 75% |
-| Faithfulness | 1.00 | 1.00 |
-| Said "I don't know" to the 4 unanswerable questions | 3/4 | 2/4 |
-| Latency (median) | 2.1 s | 6.8 s |
-| Cost per question | $0.00048 | $0.00082 |
-| Monthly cost at 10,000 questions/day | $145 | $245 |
+| Right document in top 5 (hit@5) | 82% | 82% |
+| Accuracy (judge score 4-5, 39 answerable) | 79% | 77% |
+| Unanswerable questions declined | 5/5 | 5/5 |
+| Wrongly blocked by my defenses | - | 0 |
+| Wrongly blocked by the UNC gateway's content filter | 4 | 3 |
+| Latency p50 / p95 | 1.5 s / 3.0 s | 2.7 s / 4.5 s |
+| Cost per query | $0.00054 | $0.00064 |
 
-Retrieval (sentence_800 chunks, 16 answerable questions): hit@5 = 0.69, precision@1 = 0.38, precision@5 = 0.20. Security: the input filter blocked 14/20 attacks with 1/20 false positives, and Self-RAG declined the other 6. Costs use public OpenAI list prices (the UNC gateway is prepaid).
+| Attack suite (20 attacks) | Undefended | With defenses |
+|---|---|---|
+| Attacks that succeeded | 8/20 | 2/20 |
+| Direct / role override / context manipulation / indirect | 1/5, 1/4, 3/4, 3/7 | 0/5, 0/4, 0/4, 2/7 |
+
+Every number comes from a file in `results/`. Costs use public OpenAI list prices (the UNC gateway is prepaid).
 
 ## How to run
 
-1. Clone the repo and install the requirements (Python 3.10):
+1. Clone and install (Python 3.10):
    ```
-   git clone <repo-url>
-   cd <repo-folder>
+   git clone https://github.com/henryhal/data790-milestone1-rag.git
+   cd data790-milestone1-rag
    pip install -r requirements.txt
    ```
-2. Copy `.env.example` to `.env` and put your UNC AI Gateway key in it:
+2. Copy `.env.example` to `.env` and add your UNC AI Gateway key and a Bungie API key (free at bungie.net/en/Application). The `.env` can also sit in a parent folder.
+3. Build the corpus (the lore texts are copyrighted, so they aren't in the repo; this re-downloads them): open `build_corpus.ipynb` and Run All. It needs `data/corpus/raw/destiny1_grimoire.csv`.
+4. Build the search index:
    ```
-   cp .env.example .env
+   python rag.py index
    ```
-3. Run the whole notebook (downloads the PDFs the first time, then runs every section):
+5. Gold-set eval (undefended, then with defenses):
    ```
-   jupyter nbconvert --to notebook --execute --inplace Milestone1_Production_RAG.ipynb
+   python eval_gold.py
+   python eval_gold.py --guard layered
    ```
-   Or open it in VS Code / Jupyter and click Run All.
-4. Every LLM response is saved in `results/llm_cache.json` (embeddings go in `.cache/` on your machine), so rerunning the notebook gives the same numbers without calling the API again. To re-run everything from scratch (a few minutes), delete that file first:
+6. Attack suite (undefended, then with defenses):
    ```
-   rm results/llm_cache.json
-   jupyter nbconvert --to notebook --execute --inplace Milestone1_Production_RAG.ipynb
+   python run_attacks.py
+   python run_attacks.py --guard layered
    ```
+7. Ask one question: `python rag.py ask "who are oryx's sisters"` (add `--guard layered` for the defended version).
+
+LLM responses are cached in `results/m2_llm_cache.json`, so reruns give the same numbers without calling the API.
 
 ## Files
 
-- `Milestone1_Production_RAG.ipynb` - the whole system and all the experiments
-- `data/eval_questions.json` - 20 golden questions (16 answerable, 4 unanswerable), each with the phrases from the document that contain the answer
-- `data/security_tests.json` - 20 prompt injection attacks + 20 normal questions
-- `results/llm_cache.json` - every saved LLM response (answer, tokens, latency), so reruns give the same numbers
-- `results/generation_eval.csv` - every answer and its judge scores from Section 8
-- `requirements.txt`, `.env.example`
-
-The test questions were written from the documents with AI assistance, and I used a script to check that every evidence phrase really appears in the documents.
+- `build_corpus.ipynb` - pulls and cleans the three sources, writes `corpus/manifest.jsonl` (source and license for every document) and `corpus/corpus_report.md`
+- `rag.py` - the pipeline: chunking (sentence_800, from Milestone 1), embeddings, Chroma, the Archivist prompt with a canary string
+- `defenses.py` - the layers from the security demo (pattern check, LLM classifier, chunk sanitizing, output filter) plus delimiters, a canary filter, and Lab 13's PII redaction
+- `data/gold_set.csv`, `make_gold_sheet.py`, `eval_gold.py` - the gold set (randomly sampled passages, seed 790) and its eval
+- `data/attacks.json`, `data/planted_docs.json`, `run_attacks.py` - 20 attacks, 7 planted documents (one with fake player PII), and the runner
+- `results/` - every eval and attack result (`gold_*`, `attacks_*`)
+- `Milestone1_Production_RAG.ipynb` - the Milestone 1 notebook, kept for reference
