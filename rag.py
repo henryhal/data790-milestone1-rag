@@ -348,7 +348,7 @@ def ask(question, guard=None, k=K, collection=None):
     verdict = guard.check_input(question)
     if isinstance(verdict, tuple):            # (reason, cost, llm_ms) from an LLM classifier
         verdict, costs["input_guard"], llm_ms = verdict
-        timings["input_guard"] = llm_ms + (time.perf_counter() - t0) * 1000
+        timings["input_guard"] = llm_ms   # the classifier call's saved API latency, same on every rerun
     else:
         timings["input_guard"] = (time.perf_counter() - t0) * 1000
     if verdict:

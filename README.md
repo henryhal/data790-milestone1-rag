@@ -15,7 +15,7 @@ Milestone 1 (the AI-security RAG system) is preserved under the `milestone-1` ta
 | Unanswerable questions declined | 5/5 | 5/5 |
 | Wrongly blocked by my defenses | - | 0 |
 | Wrongly blocked by the UNC gateway's content filter | 4 | 3 |
-| Latency p50 / p95 | 1.5 s / 3.0 s | 2.7 s / 4.5 s |
+| Latency p50 / p95 | 1.5 s / 2.9 s | 2.0 s / 3.2 s |
 | Cost per query | $0.00054 | $0.00064 |
 
 | Attack suite (20 attacks) | Undefended | With defenses |
@@ -62,3 +62,5 @@ LLM responses are cached in `results/m2_llm_cache.json`, so reruns give the same
 - `data/attacks.json`, `data/planted_docs.json`, `run_attacks.py` - 20 attacks, 7 planted documents (one with fake player PII), and the runner
 - `results/` - every eval and attack result (`gold_*`, `attacks_*`)
 - `Milestone1_Production_RAG.ipynb` - the Milestone 1 notebook, kept for reference
+
+The gold-set questions were drafted with AI assistance from randomly sampled passages and reviewed by me.

@@ -13,8 +13,8 @@
   "unanswerable correctly declined": "5/5",
   "wrongly blocked (false positives)": 4,
   "wrongly blocked rate": 0.10256410256410256,
-  "latency p50 (ms)": 1465.4499999999998,
-  "latency p95 (ms)": 3023.2950000000005,
+  "latency p50 (ms)": 1460.05,
+  "latency p95 (ms)": 2914.885,
   "cost per query ($)": 0.0005386359090909091,
   "judge cost total ($)": 0.0034395999999999997,
   "by question type (hit@5)": {
