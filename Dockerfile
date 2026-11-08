@@ -8,7 +8,9 @@
 # installed packages, the finished index and three .py files. Nothing from .env is ever copied in
 # (.dockerignore is an allowlist); the API key is passed at run time.
 
-ARG PYTHON_IMAGE=python:3.10-slim-bookworm
+# Python 3.11: 3.10 reached end of life in Oct 2026, and the patched filelock (CVE fix) needs >= 3.11.
+# The pipeline was re-tested on 3.11 (index rebuild + /ask) before switching.
+ARG PYTHON_IMAGE=python:3.11-slim-bookworm
 
 # ── Stage 1: install dependencies and build the search index ────────────────────────────────────
 FROM ${PYTHON_IMAGE} AS builder
