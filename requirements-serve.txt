@@ -7,3 +7,5 @@ python-dotenv==1.0.1
 fastapi==0.162.2
 uvicorn[standard]==0.54.0
 prometheus-client==0.26.0
+# Security floor: chromadb pulls in filelock; 4.1.0 had CVE-2026-112940 (Trivy scan v1)
+filelock>=4.2.1

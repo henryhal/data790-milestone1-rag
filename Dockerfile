@@ -20,7 +20,10 @@ ENV PATH=/opt/venv/bin:$PATH
 # Layer caching: requirements change rarely, so they get their own layer before any source code.
 # The cache mount keeps pip's download cache between builds without putting it in the image.
 COPY requirements-serve.txt .
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements-serve.txt
+# Upgrade the packaging tools first: the versions bundled with the base image had HIGH CVEs (Trivy scan v1).
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --upgrade "pip>=25" "setuptools>=84" "wheel>=0.46.2" \
+ && pip install -r requirements-serve.txt
 
 # Rebuild the Chroma index from the saved embeddings in .cache/ (no API key, no API calls).
 # If the chunks didn't match the saved vectors, rag.py would try to call the gateway and the
@@ -37,11 +40,16 @@ LABEL org.opencontainers.image.title="archivist" \
       org.opencontainers.image.source="https://github.com/henryhal/data790-milestone1-rag"
 
 # Patch OS packages, then run as an unprivileged user (uid 10001), never root.
+# The base image's own pip/setuptools/wheel are never used (the app runs from /opt/venv) and carried
+# HIGH CVEs, so they are removed: less code in the image, less to patch.
 RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/* \
+ && python -m pip uninstall -y pip setuptools wheel \
  && useradd --create-home --uid 10001 --shell /usr/sbin/nologin app
 
 WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
+# pip and wheel are only needed to install packages, not to run the app
+RUN /opt/venv/bin/python -m pip uninstall -y pip wheel
 COPY --from=builder --chown=app:app /app/chroma_db ./chroma_db
 COPY --chown=app:app rag.py defenses.py app.py ./
 RUN mkdir -p .cache results && chown app:app .cache results
