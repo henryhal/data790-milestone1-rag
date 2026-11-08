@@ -1,0 +1,9 @@
+# Runtime dependencies for the deployed service only (requirements.txt also has the notebook/eval tools).
+# Pinned to the versions tested together, so every image build is identical.
+openai==1.109.1
+chromadb==0.5.23
+numpy==1.26.4
+python-dotenv==1.0.1
+fastapi==0.162.2
+uvicorn[standard]==0.54.0
+prometheus-client==0.26.0

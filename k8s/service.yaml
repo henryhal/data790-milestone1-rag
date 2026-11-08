@@ -1,0 +1,11 @@
+# Stable internal address for the pods (load-balances across whatever replicas exist).
+apiVersion: v1
+kind: Service
+metadata:
+  name: archivist
+  labels: {app: archivist}
+spec:
+  type: ClusterIP
+  selector: {app: archivist}
+  ports:
+    - {name: http, port: 80, targetPort: http}

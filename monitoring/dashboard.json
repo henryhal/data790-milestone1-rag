@@ -1,0 +1,462 @@
+{
+ "displayName": "Archivist - LLM service",
+ "mosaicLayout": {
+  "columns": 12,
+  "tiles": [
+   {
+    "xPos": 0,
+    "yPos": 0,
+    "width": 12,
+    "height": 2,
+    "widget": {
+     "title": "About this dashboard",
+     "text": {
+      "format": "MARKDOWN",
+      "content": "**The Archivist (Destiny lore RAG) on Cloud Run.** Top rows: LLM metrics from the app's structured logs (log-based metrics). Bottom rows: Cloud Run's built-in container metrics. Alerts: `monitoring/alert_policies.json`. Runbook: `docs/RUNBOOK.md`."
+     }
+    }
+   },
+   {
+    "xPos": 0,
+    "yPos": 2,
+    "width": 4,
+    "height": 4,
+    "widget": {
+     "title": "Questions per minute, by outcome",
+     "xyChart": {
+      "dataSets": [
+       {
+        "timeSeriesQuery": {
+         "timeSeriesFilter": {
+          "filter": "metric.type=\"logging.googleapis.com/user/archivist_requests\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"archivist\"",
+          "aggregation": {
+           "alignmentPeriod": "60s",
+           "perSeriesAligner": "ALIGN_SUM",
+           "crossSeriesReducer": "REDUCE_SUM",
+           "groupByFields": [
+            "metric.label.outcome"
+           ]
+          }
+         }
+        },
+        "plotType": "STACKED_BAR",
+        "minAlignmentPeriod": "60s",
+        "legendTemplate": "${metric.labels.outcome}"
+       }
+      ],
+      "timeshiftDuration": "0s",
+      "yAxis": {
+       "label": "questions",
+       "scale": "LINEAR"
+      }
+     }
+    }
+   },
+   {
+    "xPos": 4,
+    "yPos": 2,
+    "width": 4,
+    "height": 4,
+    "widget": {
+     "title": "Answer latency p50 / p95 (ms)",
+     "xyChart": {
+      "dataSets": [
+       {
+        "timeSeriesQuery": {
+         "timeSeriesFilter": {
+          "filter": "metric.type=\"logging.googleapis.com/user/archivist_latency\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"archivist\"",
+          "aggregation": {
+           "alignmentPeriod": "60s",
+           "perSeriesAligner": "ALIGN_DELTA",
+           "crossSeriesReducer": "REDUCE_PERCENTILE_50"
+          }
+         }
+        },
+        "plotType": "LINE",
+        "minAlignmentPeriod": "60s",
+        "legendTemplate": "p50"
+       },
+       {
+        "timeSeriesQuery": {
+         "timeSeriesFilter": {
+          "filter": "metric.type=\"logging.googleapis.com/user/archivist_latency\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"archivist\"",
+          "aggregation": {
+           "alignmentPeriod": "60s",
+           "perSeriesAligner": "ALIGN_DELTA",
+           "crossSeriesReducer": "REDUCE_PERCENTILE_95"
+          }
+         }
+        },
+        "plotType": "LINE",
+        "minAlignmentPeriod": "60s",
+        "legendTemplate": "p95"
+       }
+      ],
+      "timeshiftDuration": "0s",
+      "yAxis": {
+       "label": "ms",
+       "scale": "LINEAR"
+      }
+     }
+    }
+   },
+   {
+    "xPos": 8,
+    "yPos": 2,
+    "width": 4,
+    "height": 4,
+    "widget": {
+     "title": "LLM cost per question (USD, mean)",
+     "xyChart": {
+      "dataSets": [
+       {
+        "timeSeriesQuery": {
+         "timeSeriesFilter": {
+          "filter": "metric.type=\"logging.googleapis.com/user/archivist_cost\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"archivist\"",
+          "aggregation": {
+           "alignmentPeriod": "60s",
+           "perSeriesAligner": "ALIGN_DELTA",
+           "crossSeriesReducer": "REDUCE_MEAN"
+          }
+         }
+        },
+        "plotType": "LINE",
+        "minAlignmentPeriod": "60s",
+        "legendTemplate": "mean cost"
+       }
+      ],
+      "timeshiftDuration": "0s",
+      "yAxis": {
+       "label": "USD",
+       "scale": "LINEAR"
+      }
+     }
+    }
+   },
+   {
+    "xPos": 0,
+    "yPos": 6,
+    "width": 4,
+    "height": 4,
+    "widget": {
+     "title": "Tokens per answer (mean)",
+     "xyChart": {
+      "dataSets": [
+       {
+        "timeSeriesQuery": {
+         "timeSeriesFilter": {
+          "filter": "metric.type=\"logging.googleapis.com/user/archivist_prompt_tokens\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"archivist\"",
+          "aggregation": {
+           "alignmentPeriod": "60s",
+           "perSeriesAligner": "ALIGN_DELTA",
+           "crossSeriesReducer": "REDUCE_MEAN"
+          }
+         }
+        },
+        "plotType": "LINE",
+        "minAlignmentPeriod": "60s",
+        "legendTemplate": "prompt"
+       },
+       {
+        "timeSeriesQuery": {
+         "timeSeriesFilter": {
+          "filter": "metric.type=\"logging.googleapis.com/user/archivist_completion_tokens\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"archivist\"",
+          "aggregation": {
+           "alignmentPeriod": "60s",
+           "perSeriesAligner": "ALIGN_DELTA",
+           "crossSeriesReducer": "REDUCE_MEAN"
+          }
+         }
+        },
+        "plotType": "LINE",
+        "minAlignmentPeriod": "60s",
+        "legendTemplate": "completion"
+       }
+      ],
+      "timeshiftDuration": "0s",
+      "yAxis": {
+       "label": "tokens",
+       "scale": "LINEAR"
+      }
+     }
+    }
+   },
+   {
+    "xPos": 4,
+    "yPos": 6,
+    "width": 4,
+    "height": 4,
+    "widget": {
+     "title": "Blocked questions, by defense layer",
+     "xyChart": {
+      "dataSets": [
+       {
+        "timeSeriesQuery": {
+         "timeSeriesFilter": {
+          "filter": "metric.type=\"logging.googleapis.com/user/archivist_blocked\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"archivist\"",
+          "aggregation": {
+           "alignmentPeriod": "60s",
+           "perSeriesAligner": "ALIGN_SUM",
+           "crossSeriesReducer": "REDUCE_SUM",
+           "groupByFields": [
+            "metric.label.blocked_by"
+           ]
+          }
+         }
+        },
+        "plotType": "STACKED_BAR",
+        "minAlignmentPeriod": "60s",
+        "legendTemplate": "${metric.labels.blocked_by}"
+       }
+      ],
+      "timeshiftDuration": "0s",
+      "yAxis": {
+       "label": "blocked",
+       "scale": "LINEAR"
+      }
+     }
+    }
+   },
+   {
+    "xPos": 8,
+    "yPos": 6,
+    "width": 4,
+    "height": 4,
+    "widget": {
+     "title": "Cache hits vs. gateway calls",
+     "xyChart": {
+      "dataSets": [
+       {
+        "timeSeriesQuery": {
+         "timeSeriesFilter": {
+          "filter": "metric.type=\"logging.googleapis.com/user/archivist_requests\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"archivist\"",
+          "aggregation": {
+           "alignmentPeriod": "60s",
+           "perSeriesAligner": "ALIGN_SUM",
+           "crossSeriesReducer": "REDUCE_SUM",
+           "groupByFields": [
+            "metric.label.cache_hit"
+           ]
+          }
+         }
+        },
+        "plotType": "STACKED_BAR",
+        "minAlignmentPeriod": "60s",
+        "legendTemplate": "cache_hit=${metric.labels.cache_hit}"
+       }
+      ],
+      "timeshiftDuration": "0s",
+      "yAxis": {
+       "label": "questions",
+       "scale": "LINEAR"
+      }
+     }
+    }
+   },
+   {
+    "xPos": 0,
+    "yPos": 10,
+    "width": 4,
+    "height": 4,
+    "widget": {
+     "title": "Instances (autoscaling)",
+     "xyChart": {
+      "dataSets": [
+       {
+        "timeSeriesQuery": {
+         "timeSeriesFilter": {
+          "filter": "metric.type=\"run.googleapis.com/container/instance_count\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"archivist\"",
+          "aggregation": {
+           "alignmentPeriod": "60s",
+           "perSeriesAligner": "ALIGN_MAX",
+           "crossSeriesReducer": "REDUCE_SUM",
+           "groupByFields": [
+            "metric.label.state"
+           ]
+          }
+         }
+        },
+        "plotType": "STACKED_AREA",
+        "minAlignmentPeriod": "60s",
+        "legendTemplate": "${metric.labels.state}"
+       }
+      ],
+      "timeshiftDuration": "0s",
+      "yAxis": {
+       "label": "instances",
+       "scale": "LINEAR"
+      }
+     }
+    }
+   },
+   {
+    "xPos": 4,
+    "yPos": 10,
+    "width": 4,
+    "height": 4,
+    "widget": {
+     "title": "Cold starts: container startup latency (ms)",
+     "xyChart": {
+      "dataSets": [
+       {
+        "timeSeriesQuery": {
+         "timeSeriesFilter": {
+          "filter": "metric.type=\"run.googleapis.com/container/startup_latencies\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"archivist\"",
+          "aggregation": {
+           "alignmentPeriod": "60s",
+           "perSeriesAligner": "ALIGN_DELTA",
+           "crossSeriesReducer": "REDUCE_PERCENTILE_95"
+          }
+         }
+        },
+        "plotType": "LINE",
+        "minAlignmentPeriod": "60s",
+        "legendTemplate": "p95 startup"
+       }
+      ],
+      "timeshiftDuration": "0s",
+      "yAxis": {
+       "label": "ms",
+       "scale": "LINEAR"
+      }
+     }
+    }
+   },
+   {
+    "xPos": 8,
+    "yPos": 10,
+    "width": 4,
+    "height": 4,
+    "widget": {
+     "title": "Cloud Run request latency p95 (ms)",
+     "xyChart": {
+      "dataSets": [
+       {
+        "timeSeriesQuery": {
+         "timeSeriesFilter": {
+          "filter": "metric.type=\"run.googleapis.com/request_latencies\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"archivist\"",
+          "aggregation": {
+           "alignmentPeriod": "60s",
+           "perSeriesAligner": "ALIGN_DELTA",
+           "crossSeriesReducer": "REDUCE_PERCENTILE_95"
+          }
+         }
+        },
+        "plotType": "LINE",
+        "minAlignmentPeriod": "60s",
+        "legendTemplate": "p95"
+       }
+      ],
+      "timeshiftDuration": "0s",
+      "yAxis": {
+       "label": "ms",
+       "scale": "LINEAR"
+      }
+     }
+    }
+   },
+   {
+    "xPos": 0,
+    "yPos": 14,
+    "width": 4,
+    "height": 4,
+    "widget": {
+     "title": "Requests by HTTP status class",
+     "xyChart": {
+      "dataSets": [
+       {
+        "timeSeriesQuery": {
+         "timeSeriesFilter": {
+          "filter": "metric.type=\"run.googleapis.com/request_count\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"archivist\"",
+          "aggregation": {
+           "alignmentPeriod": "60s",
+           "perSeriesAligner": "ALIGN_SUM",
+           "crossSeriesReducer": "REDUCE_SUM",
+           "groupByFields": [
+            "metric.label.response_code_class"
+           ]
+          }
+         }
+        },
+        "plotType": "STACKED_BAR",
+        "minAlignmentPeriod": "60s",
+        "legendTemplate": "${metric.labels.response_code_class}"
+       }
+      ],
+      "timeshiftDuration": "0s",
+      "yAxis": {
+       "label": "requests",
+       "scale": "LINEAR"
+      }
+     }
+    }
+   },
+   {
+    "xPos": 4,
+    "yPos": 14,
+    "width": 4,
+    "height": 4,
+    "widget": {
+     "title": "Container CPU utilization p95",
+     "xyChart": {
+      "dataSets": [
+       {
+        "timeSeriesQuery": {
+         "timeSeriesFilter": {
+          "filter": "metric.type=\"run.googleapis.com/container/cpu/utilizations\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"archivist\"",
+          "aggregation": {
+           "alignmentPeriod": "60s",
+           "perSeriesAligner": "ALIGN_DELTA",
+           "crossSeriesReducer": "REDUCE_PERCENTILE_95"
+          }
+         }
+        },
+        "plotType": "LINE",
+        "minAlignmentPeriod": "60s",
+        "legendTemplate": "CPU p95"
+       }
+      ],
+      "timeshiftDuration": "0s",
+      "yAxis": {
+       "label": "fraction",
+       "scale": "LINEAR"
+      }
+     }
+    }
+   },
+   {
+    "xPos": 8,
+    "yPos": 14,
+    "width": 4,
+    "height": 4,
+    "widget": {
+     "title": "Container memory utilization p95",
+     "xyChart": {
+      "dataSets": [
+       {
+        "timeSeriesQuery": {
+         "timeSeriesFilter": {
+          "filter": "metric.type=\"run.googleapis.com/container/memory/utilizations\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"archivist\"",
+          "aggregation": {
+           "alignmentPeriod": "60s",
+           "perSeriesAligner": "ALIGN_DELTA",
+           "crossSeriesReducer": "REDUCE_PERCENTILE_95"
+          }
+         }
+        },
+        "plotType": "LINE",
+        "minAlignmentPeriod": "60s",
+        "legendTemplate": "memory p95"
+       }
+      ],
+      "timeshiftDuration": "0s",
+      "yAxis": {
+       "label": "fraction",
+       "scale": "LINEAR"
+      }
+     }
+    }
+   }
+  ]
+ }
+}

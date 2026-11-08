@@ -1,0 +1,64 @@
+# The Archivist RAG service. Each pod is one copy of the container; the HPA (hpa.yaml) changes how many.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: archivist
+  labels: {app: archivist}
+spec:
+  replicas: 2                           # starting point; the HPA owns this number once it's running
+  revisionHistoryLimit: 5               # keep old ReplicaSets so `kubectl rollout undo` works
+  selector:
+    matchLabels: {app: archivist}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0                 # zero-downtime deploys: a new pod must be Ready before an old one stops
+      maxSurge: 1
+  template:
+    metadata:
+      labels: {app: archivist}
+      annotations:
+        prometheus.io/scrape: "true"    # Prometheus (or GKE Managed Prometheus) scrapes /metrics
+        prometheus.io/port: "8080"
+        prometheus.io/path: /metrics
+    spec:
+      automountServiceAccountToken: false   # the app never talks to the Kubernetes API
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: archivist
+          image: archivist              # replaced by kustomization.yaml `images:`
+          imagePullPolicy: IfNotPresent
+          ports:
+            - {name: http, containerPort: 8080}
+          env:
+            - {name: RAG_GUARD, value: layered}
+            - {name: RAG_CACHE_MAX, value: "5000"}
+            - name: UNC_AI_API_KEY
+              valueFrom: {secretKeyRef: {name: archivist-secrets, key: UNC_AI_API_KEY}}
+            - name: APP_ACCESS_TOKEN
+              valueFrom: {secretKeyRef: {name: archivist-secrets, key: APP_ACCESS_TOKEN, optional: true}}
+          resources:
+            # Measured: ~175 MB peak with the 9,222-chunk index loaded and searched. The work is mostly
+            # waiting on the LLM gateway, so CPU requests are small; the limits absorb startup and bursts.
+            requests: {cpu: 250m, memory: 384Mi}
+            limits:   {cpu: "1",  memory: 768Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+          startupProbe:                 # index load: give it up to 60 s before liveness kicks in
+            httpGet: {path: /ready, port: http}
+            periodSeconds: 3
+            failureThreshold: 20
+          readinessProbe:               # only route traffic to pods whose index is loaded
+            httpGet: {path: /ready, port: http}
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:                # restart a pod whose process has hung
+            httpGet: {path: /health, port: http}
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3

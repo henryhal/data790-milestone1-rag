@@ -1,0 +1,9 @@
+# During node upgrades/drains, keep at least one pod serving.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: archivist
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: {app: archivist}

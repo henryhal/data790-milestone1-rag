@@ -15,3 +15,8 @@ __pycache__/
 # other files that don't belong in the repo
 .Rhistory
 *.html
+
+# cloud deployment: local-only values written by deploy/*.sh
+deploy/.access_token
+deploy/.last_image
+mlartifacts/.trash/

@@ -1,0 +1,35 @@
+# Horizontal autoscaling: add pods when busy, remove them when quiet.
+#
+# Two signals; the HPA scales to whichever asks for MORE pods:
+#   1. CPU (built in): a backstop for CPU-heavy work (retrieval, JSON, PII regexes).
+#   2. In-flight requests per pod (custom metric from the app's /metrics). This is the better signal
+#      for an LLM app: each request spends ~2 s waiting on the gateway using almost no CPU, so a pod
+#      can be "full" at 15% CPU. Needs a metrics adapter (prometheus-adapter, or GKE's Custom Metrics
+#      Stackdriver Adapter) to expose archivist_inflight_requests to the HPA; without one, the HPA
+#      reports that metric as unavailable and keeps scaling on CPU alone.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: archivist
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: archivist}
+  minReplicas: 1                        # cost floor: one warm pod, so no cold starts
+  maxReplicas: 5                        # cost ceiling, and the UNC gateway's per-minute quota caps useful scale anyway
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: {type: Utilization, averageUtilization: 60}
+    - type: Pods
+      pods:
+        metric: {name: archivist_inflight_requests}
+        target: {type: AverageValue, averageValue: "8"}
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0     # react to a spike immediately
+      policies:
+        - {type: Pods, value: 2, periodSeconds: 30}
+    scaleDown:
+      stabilizationWindowSeconds: 300   # wait 5 min of quiet before removing pods (no flapping)
+      policies:
+        - {type: Pods, value: 1, periodSeconds: 60}

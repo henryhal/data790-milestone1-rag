@@ -1,0 +1,10 @@
+# Allowlist: ignore everything, then let in only what the image needs.
+# This is what guarantees .env (API keys), .git, the 155 MB local chroma_db and the rest never reach the image.
+*
+!requirements-serve.txt
+!rag.py
+!defenses.py
+!app.py
+# Build stage only (rebuilds the index with no API calls). Copyrighted lore text, so the image stays private.
+!data/corpus/docs.jsonl
+!.cache/m2_destiny_sentence_800.npz

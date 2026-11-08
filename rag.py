@@ -39,6 +39,18 @@ RESULTS_DIR = ROOT / "results"
 CACHE_DIR.mkdir(exist_ok=True)
 RESULTS_DIR.mkdir(exist_ok=True)
 
+# Serving mode (the deployed container sets RAG_CACHE_WRITES=0): the LLM and query-embedding caches stay
+# in memory only. Writing them to a JSON file on every call is fine on a laptop, but in the cloud each
+# replica would keep its own copy, replicas would overwrite each other, and the file vanishes on restart.
+# RAG_CACHE_MAX caps how many entries each in-memory cache holds (oldest dropped first).
+CACHE_WRITES = os.getenv("RAG_CACHE_WRITES", "1") == "1"
+CACHE_MAX = int(os.getenv("RAG_CACHE_MAX", "5000"))
+
+
+def _cap(cache):
+    while len(cache) >= CACHE_MAX:
+        cache.pop(next(iter(cache)))
+
 COLLECTION = "m2_destiny_sentence_800"
 CHUNK_CHARS = 800
 K = 5
@@ -79,7 +91,8 @@ _llm_cache = json.loads(LLM_CACHE_FILE.read_text()) if LLM_CACHE_FILE.exists() e
 
 
 def _save_llm_cache():
-    LLM_CACHE_FILE.write_text(json.dumps(_llm_cache))
+    if CACHE_WRITES:
+        LLM_CACHE_FILE.write_text(json.dumps(_llm_cache))
 
 
 def chat(messages, model=CHAT_MODEL, max_tokens=MAX_ANSWER_TOKENS):
@@ -87,7 +100,9 @@ def chat(messages, model=CHAT_MODEL, max_tokens=MAX_ANSWER_TOKENS):
     gateway_blocked (True if Azure's content filter rejected the prompt), gateway_flags."""
     key = hashlib.md5(json.dumps({"model": model, "messages": messages, "max_tokens": max_tokens},
                                  sort_keys=True).encode()).hexdigest()
-    if key not in _llm_cache:
+    cache_hit = key in _llm_cache
+    if not cache_hit:
+        _cap(_llm_cache)
         for attempt in range(3):
             start = time.time()
             try:
@@ -119,6 +134,7 @@ def chat(messages, model=CHAT_MODEL, max_tokens=MAX_ANSWER_TOKENS):
     c = dict(_llm_cache[key])
     c["cost_usd"] = cost_usd(model, c["prompt_tokens"], c["completion_tokens"])
     c["model"] = model
+    c["cache_hit"] = cache_hit
     return c
 
 
@@ -157,11 +173,13 @@ _query_cache = json.loads(QUERY_CACHE_FILE.read_text()) if QUERY_CACHE_FILE.exis
 def embed_query(text):
     """One question's embedding, cached. Returns (vector, latency_ms, cost_usd)."""
     if text not in _query_cache:
+        _cap(_query_cache)
         start = time.time()
         vec, tokens = embed_texts([text])
         _query_cache[text] = {"embedding": vec[0].tolist(), "latency_ms": (time.time() - start) * 1000,
                               "tokens": tokens}
-        QUERY_CACHE_FILE.write_text(json.dumps(_query_cache))
+        if CACHE_WRITES:
+            QUERY_CACHE_FILE.write_text(json.dumps(_query_cache))
     c = _query_cache[text]
     return np.array(c["embedding"], dtype=np.float32), c["latency_ms"], cost_usd(EMBED_MODEL, c.get("tokens", 0))
 
@@ -369,6 +387,8 @@ def ask(question, guard=None, k=K, collection=None):
     timings["generate"], costs["generate"] = out["latency_ms"], out["cost_usd"]
     r["gateway_blocked"], r["gateway_flags"] = out["gateway_blocked"], out["gateway_flags"]
     r["raw_answer"] = out["text"]
+    r["prompt_tokens"], r["completion_tokens"] = out["prompt_tokens"], out["completion_tokens"]
+    r["cache_hit"] = out["cache_hit"]
     if out["gateway_blocked"]:
         r["blocked_by"] = "gateway"
         events.append("blocked by the gateway's content filter")
