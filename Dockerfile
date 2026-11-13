@@ -12,7 +12,7 @@
 # The pipeline was re-tested on 3.11 (index rebuild + /ask) before switching.
 ARG PYTHON_IMAGE=python:3.11-slim-bookworm
 
-# ── Stage 1: install dependencies and build the search index ────────────────────────────────────
+# Stage 1: install dependencies and build the search index
 FROM ${PYTHON_IMAGE} AS builder
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PYTHONDONTWRITEBYTECODE=1
 WORKDIR /app
@@ -35,7 +35,7 @@ COPY data/corpus/docs.jsonl data/corpus/docs.jsonl
 COPY .cache/m2_destiny_sentence_800.npz .cache/m2_destiny_sentence_800.npz
 RUN RAG_CACHE_WRITES=0 python rag.py index
 
-# ── Stage 2: the slim runtime image ─────────────────────────────────────────────────────────────
+# Stage 2: the slim runtime image
 FROM ${PYTHON_IMAGE} AS runtime
 LABEL org.opencontainers.image.title="archivist" \
       org.opencontainers.image.description="Destiny lore RAG service (DATA 790 cloud deployment)" \

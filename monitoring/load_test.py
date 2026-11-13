@@ -13,7 +13,11 @@ Each run records, in MLflow:
            cache-hit rate, blocked rate, distinct instances that served traffic (autoscaling evidence),
            first-request latency (cold start when the service was scaled to zero), projected monthly cost
   steps    latency_ms per request, in the order they finished (MLflow draws it as a chart)
-  files    per-request CSV and the summary JSON (also written to results/load_test_<label>.json)
+  files    per-request CSV and the run summary
+
+Results are also saved as CSV (like the Milestone 2 results/ files):
+  results/load_tests.csv                    one row per measurement, one column per load test
+  results/load_test_<label>_requests.csv    one row per question in that run
 """
 import argparse
 import csv
@@ -58,6 +62,71 @@ def post(url, token, question, timeout=90):
 def pct(xs, q):
     xs = sorted(xs)
     return xs[min(len(xs) - 1, int(round(q / 100 * (len(xs) - 1))))] if xs else float("nan")
+
+
+# What each row of results/load_tests.csv means (rows = measurements, one column per load test).
+METRICS = [
+    ("version", "Deployed app version (git commit) that was tested"),
+    ("requests", "Questions sent"),
+    ("concurrency", "Questions in flight at once (simulated simultaneous users)"),
+    ("instances_seen", "Cloud Run instances that answered at least one question (autoscaling)"),
+    ("wall_seconds", "How long the whole test took (s)"),
+    ("throughput_rps", "Questions answered per second"),
+    ("error_rate", "Share of questions that failed (0.005 = 0.5%)"),
+    ("errors", "Number of failed questions"),
+    ("latency_p50_ms", "Median wait for an answer, measured by the client (ms)"),
+    ("latency_p95_ms", "95% of answers arrived within this time (ms)"),
+    ("latency_p99_ms", "99% of answers arrived within this time (ms)"),
+    ("server_latency_mean_ms", "Average time spent inside the app per question (ms)"),
+    ("first_request_ms", "Time for the very first question of the test (ms)"),
+    ("cache_hit_rate", "Share of questions answered from the in-memory cache"),
+    ("cost_total_usd", "LLM cost of the whole test (USD)"),
+    ("cost_per_question_usd", "Average LLM cost per question (USD)"),
+    ("projected_llm_cost_per_month_usd", "That cost at 10,000 questions/day for 30 days (USD)"),
+    ("answered", "Questions answered"),
+    ("declined", "Questions the app declined (not in the lore)"),
+    ("blocked", "Questions stopped by a defense layer"),
+    ("blocked_by_pattern", "...stopped by the regex pattern layer"),
+    ("blocked_by_classifier", "...stopped by the LLM injection classifier"),
+    ("blocked_by_gateway", "...stopped by Azure's content filter at the UNC gateway"),
+]
+
+
+def flatten(summary):
+    """One value per measurement in METRICS (nested counts become their own rows)."""
+    outcomes, blocks = summary.get("outcomes", {}), summary.get("blocked_by", {})
+    flat = dict(summary)
+    flat["errors"] = outcomes.get("error", 0)
+    for k in ("answered", "declined", "blocked"):
+        flat[k] = outcomes.get(k, 0)
+    for k in ("pattern", "classifier", "gateway"):
+        flat[f"blocked_by_{k}"] = blocks.get(k, 0)
+    return {m: flat.get(m, "") for m, _ in METRICS}
+
+
+def save_csv(summary, rows, label):
+    """results/load_tests.csv: one row per measurement, one column per load test (re-running a label
+    replaces its column). results/load_test_<label>_requests.csv: one row per question."""
+    results = ROOT / "results"
+    results.mkdir(exist_ok=True)
+    runs_file = results / "load_tests.csv"
+    runs = {}
+    if runs_file.exists():
+        table = list(csv.reader(open(runs_file)))
+        for j, run_label in enumerate(table[0][1:-1], start=1):
+            runs[run_label] = {r[0]: r[j] for r in table[1:]}
+    runs[label] = flatten(summary)
+    with open(runs_file, "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["metric"] + list(runs) + ["meaning"])
+        for m, meaning in METRICS:
+            w.writerow([m] + [runs[r].get(m, "") for r in runs] + [meaning])
+    req_file = results / f"load_test_{label}_requests.csv"
+    with open(req_file, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+        w.writeheader()
+        w.writerows(rows)
+    print(f"Saved {runs_file.relative_to(ROOT)} and {req_file.relative_to(ROOT)}")
 
 
 def main():
@@ -121,10 +190,7 @@ def main():
         "projected_llm_cost_per_month_usd": round(per_q * a.questions_per_day * 30, 2),
     }
     print(json.dumps(summary, indent=2))
-    (ROOT / "results").mkdir(exist_ok=True)
-    out = ROOT / "results" / f"load_test_{a.label}.json"
-    out.write_text(json.dumps(summary, indent=2))
-    print(f"Saved {out.relative_to(ROOT)}")
+    save_csv(summary, rows, a.label)
 
     if a.no_mlflow:
         return

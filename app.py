@@ -41,7 +41,7 @@ ACCESS_TOKEN = os.getenv("APP_ACCESS_TOKEN", "")       # if set, /ask needs the 
 INSTANCE_ID = uuid.uuid4().hex[:8]                     # lets the load test count how many replicas served it
 _STARTED = time.time()
 
-# ── Logging: one JSON object per line (Cloud Logging reads "severity" and "message") ─────────────
+# Logging: one JSON object per line (Cloud Logging reads "severity" and "message")
 log = logging.getLogger("archivist")
 log.setLevel(logging.INFO)
 _h = logging.StreamHandler()
@@ -55,7 +55,7 @@ def log_json(severity, message, **fields):
                          "version": APP_VERSION, **fields}, default=str))
 
 
-# ── Prometheus metrics ──────────────────────────────────────────────────────────────────────────
+# Prometheus metrics
 REQUESTS = Counter("archivist_requests_total", "Questions answered, by outcome",
                    ["outcome"])                         # answered / declined / blocked / error
 BLOCKS = Counter("archivist_blocked_total", "Questions stopped by a defense layer", ["layer"])

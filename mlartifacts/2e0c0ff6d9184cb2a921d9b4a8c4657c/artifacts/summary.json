@@ -1,0 +1,36 @@
+{
+  "label": "warm-min1-conc4",
+  "url": "https://archivist-7fjjipu24a-ue.a.run.app",
+  "version": "2fccc88",
+  "requests": 200,
+  "concurrency": 24,
+  "wall_seconds": 24.3,
+  "throughput_rps": 8.2,
+  "error_rate": 0.005,
+  "status_counts": {
+    "200": 199,
+    "500": 1
+  },
+  "latency_p50_ms": 1748.0,
+  "latency_p95_ms": 12003.6,
+  "latency_p99_ms": 14828.2,
+  "server_latency_mean_ms": 1351.9,
+  "first_request_ms": 2531.3,
+  "cost_total_usd": 0.076961,
+  "cost_per_question_usd": 0.000387,
+  "cache_hit_rate": 0.387,
+  "blocked_rate": 0.095,
+  "blocked_by": {
+    "classifier": 7,
+    "gateway": 10,
+    "pattern": 2
+  },
+  "outcomes": {
+    "answered": 152,
+    "blocked": 19,
+    "declined": 28,
+    "error": 1
+  },
+  "instances_seen": 5,
+  "projected_llm_cost_per_month_usd": 116.02
+}

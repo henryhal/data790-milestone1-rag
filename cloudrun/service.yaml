@@ -1,0 +1,75 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+    run.googleapis.com/maxScale: '20'
+    run.googleapis.com/urls: '["https://archivist-282707561929.us-east1.run.app","https://archivist-7fjjipu24a-ue.a.run.app"]'
+  labels:
+    app: archivist
+    cloud.googleapis.com/location: us-east1
+    course: data790
+  name: archivist
+  namespace: '282707561929'
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '5'
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 592.0.0
+        run.googleapis.com/startup-cpu-boost: 'true'
+      labels:
+        app: archivist
+        client.knative.dev/nonce: ltiklbgyuc
+        course: data790
+        run.googleapis.com/startupProbeType: Custom
+    spec:
+      containerConcurrency: 20
+      containers:
+      - env:
+        - name: RAG_GUARD
+          value: layered
+        - name: APP_VERSION
+          value: 100218c
+        - name: RAG_CACHE_MAX
+          value: '5000'
+        - name: UNC_AI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: unc-ai-api-key
+        - name: APP_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: latest
+              name: archivist-access-token
+        image: us-east1-docker.pkg.dev/archivist-790-hh/archivist/archivist:100218c
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8080
+          periodSeconds: 30
+          timeoutSeconds: 5
+        ports:
+        - containerPort: 8080
+          name: http1
+        resources:
+          limits:
+            cpu: '1'
+            memory: 1Gi
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /ready
+            port: 8080
+          periodSeconds: 2
+          timeoutSeconds: 2
+      sandboxes: {}
+      serviceAccountName: archivist-run@archivist-790-hh.iam.gserviceaccount.com
+      timeoutSeconds: 60
+  traffic:
+  - latestRevision: true
+    percent: 100

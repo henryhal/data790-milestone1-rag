@@ -1,0 +1,24 @@
+metric,scale-to-zero,warm-min1-conc4,meaning
+version,2fccc88,2fccc88,Deployed app version (git commit) that was tested
+requests,120,200,Questions sent
+concurrency,12,24,Questions in flight at once (simulated simultaneous users)
+instances_seen,1,5,Cloud Run instances that answered at least one question (autoscaling)
+wall_seconds,13.1,24.3,How long the whole test took (s)
+throughput_rps,9.14,8.2,Questions answered per second
+error_rate,0.0,0.005,Share of questions that failed (0.005 = 0.5%)
+errors,0,1,Number of failed questions
+latency_p50_ms,1014.4,1748.0,"Median wait for an answer, measured by the client (ms)"
+latency_p95_ms,2864.7,12003.6,95% of answers arrived within this time (ms)
+latency_p99_ms,3268.1,14828.2,99% of answers arrived within this time (ms)
+server_latency_mean_ms,1038.6,1351.9,Average time spent inside the app per question (ms)
+first_request_ms,3242.8,2531.3,Time for the very first question of the test (ms)
+cache_hit_rate,0.442,0.387,Share of questions answered from the in-memory cache
+cost_total_usd,0.042715,0.076961,LLM cost of the whole test (USD)
+cost_per_question_usd,0.000356,0.000387,Average LLM cost per question (USD)
+projected_llm_cost_per_month_usd,106.79,116.02,"That cost at 10,000 questions/day for 30 days (USD)"
+answered,94,152,Questions answered
+declined,19,28,Questions the app declined (not in the lore)
+blocked,7,19,Questions stopped by a defense layer
+blocked_by_pattern,0,2,...stopped by the regex pattern layer
+blocked_by_classifier,4,7,...stopped by the LLM injection classifier
+blocked_by_gateway,3,10,...stopped by Azure's content filter at the UNC gateway

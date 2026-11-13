@@ -1,0 +1,89 @@
+# The Archivist on Kubernetes: the same container image that runs on Cloud Run.
+# Not deployed (the live service is Cloud Run, which is cheaper at this traffic); provided as the
+# Kubernetes deployment configuration. Three objects:
+#   1. Deployment  - runs copies ("pods") of the container
+#   2. Service     - one stable internal address that spreads traffic across the pods
+#   3. HorizontalPodAutoscaler - adds/removes pods as load changes
+#
+# To use it on a cluster:
+#   kubectl create secret generic archivist-secrets --from-literal=UNC_AI_API_KEY="$UNC_AI_API_KEY"
+#   kubectl apply -f k8s/archivist.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: archivist
+  labels: {app: archivist}
+spec:
+  replicas: 2                           # starting point; the autoscaler below takes over
+  selector:
+    matchLabels: {app: archivist}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0                 # zero-downtime updates: a new pod must be ready before an old one stops
+      maxSurge: 1
+  template:
+    metadata:
+      labels: {app: archivist}
+    spec:
+      securityContext:
+        runAsNonRoot: true              # same non-root user (uid 10001) as the Dockerfile
+        runAsUser: 10001
+      containers:
+        - name: archivist
+          image: us-east1-docker.pkg.dev/archivist-790-hh/archivist/archivist:100218c
+          ports:
+            - {name: http, containerPort: 8080}
+          env:
+            - {name: RAG_GUARD, value: layered}
+            - name: UNC_AI_API_KEY      # read from the secret created above, never written in this file
+              valueFrom: {secretKeyRef: {name: archivist-secrets, key: UNC_AI_API_KEY}}
+          resources:
+            # Cloud Run measured memory at 82-86% of 512Mi under load and CPU peaking around 15%,
+            # so: little CPU requested, 1Gi memory limit.
+            requests: {cpu: 250m, memory: 512Mi}
+            limits:   {cpu: "1",  memory: 1Gi}
+          readinessProbe:               # only send traffic once the search index is loaded
+            httpGet: {path: /ready, port: http}
+            periodSeconds: 5
+          livenessProbe:                # restart the pod if the app stops responding
+            httpGet: {path: /health, port: http}
+            initialDelaySeconds: 30
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: archivist
+spec:
+  selector: {app: archivist}
+  ports:
+    - {name: http, port: 80, targetPort: http}
+---
+# Autoscaling on two signals; Kubernetes uses whichever asks for more pods:
+#   - CPU above 60% (built in)
+#   - more than 8 questions in flight per pod (custom metric from the app's /metrics endpoint).
+#     This is the one that matters for this app: questions mostly wait on the LLM gateway, so CPU stays
+#     low (peaked around 15% on Cloud Run) even when an instance is full. Using a custom metric needs
+#     a metrics adapter (e.g. prometheus-adapter) installed on the cluster.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: archivist
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: archivist}
+  minReplicas: 1
+  maxReplicas: 5                        # same cost ceiling as Cloud Run
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: {type: Utilization, averageUtilization: 60}
+    - type: Pods
+      pods:
+        metric: {name: archivist_inflight_requests}
+        target: {type: AverageValue, averageValue: "8"}
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300   # wait 5 quiet minutes before removing pods

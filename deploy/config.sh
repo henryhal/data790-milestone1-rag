@@ -14,7 +14,7 @@ MIN_INSTANCES="${MIN_INSTANCES:-0}"     # 0 = scale to zero (cheapest, cold star
 MAX_INSTANCES="${MAX_INSTANCES:-5}"     # cost ceiling; the gateway's tokens-per-minute quota limits useful scale anyway
 CONCURRENCY="${CONCURRENCY:-20}"        # requests per instance at once (custom scaling metric: requests, not CPU)
 CPU="${CPU:-1}"
-MEMORY="${MEMORY:-512Mi}"               # measured ~175 MB peak; 512Mi is the minimum Cloud Run allows at 1 vCPU
+MEMORY="${MEMORY:-1Gi}"                 # Cloud Monitoring showed 82-86% of 512Mi in use under load -> 1Gi for headroom
 
 if [ "$PROJECT_ID" = "YOUR_PROJECT_ID" ]; then
   echo "Set PROJECT_ID first:  export PROJECT_ID=your-gcp-project-id   (or edit deploy/config.sh)" >&2
